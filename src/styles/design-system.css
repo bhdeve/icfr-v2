@@ -1,0 +1,490 @@
+/**
+ * سحابة الأثر - نظام التصميم الموحّد
+ * Design System for Athar Cloud Platform
+ * Version: 2.0
+ */
+
+/* ==========================================
+   1. SPACING SYSTEM - نظام التباعد
+   ========================================== */
+
+:root {
+  /* Base spacing unit: 4px */
+  --spacing-0: 0;
+  --spacing-1: 0.25rem;   /* 4px */
+  --spacing-2: 0.5rem;    /* 8px */
+  --spacing-3: 0.75rem;   /* 12px */
+  --spacing-4: 1rem;      /* 16px */
+  --spacing-5: 1.25rem;   /* 20px */
+  --spacing-6: 1.5rem;    /* 24px */
+  --spacing-8: 2rem;      /* 32px */
+  --spacing-10: 2.5rem;   /* 40px */
+  --spacing-12: 3rem;     /* 48px */
+  --spacing-16: 4rem;     /* 64px */
+  --spacing-20: 5rem;     /* 80px */
+  
+  /* Semantic spacing */
+  --page-padding: var(--spacing-6);        /* 24px */
+  --section-spacing: var(--spacing-8);     /* 32px */
+  --card-padding: var(--spacing-5);        /* 20px */
+  --element-gap: var(--spacing-4);         /* 16px */
+  --compact-gap: var(--spacing-3);         /* 12px */
+}
+
+/* ==========================================
+   2. TYPOGRAPHY SYSTEM - نظام الطباعة
+   ========================================== */
+
+:root {
+  /* Font sizes */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.875rem;     /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+  --text-3xl: 1.875rem;    /* 30px */
+  --text-4xl: 2.25rem;     /* 36px */
+  --text-5xl: 3rem;        /* 48px */
+  
+  /* Font weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* Line heights */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+}
+
+/* ==========================================
+   3. COLOR SYSTEM - نظام الألوان المحسّن
+   ========================================== */
+
+:root {
+  /* Primary colors - based on #18325A */
+  --primary-50: #e8ecf3;
+  --primary-100: #c5cfe0;
+  --primary-200: #9eb0cb;
+  --primary-300: #7790b6;
+  --primary-400: #5a78a6;
+  --primary-500: #3d6096;
+  --primary-600: #37588e;
+  --primary-700: #2f4d83;
+  --primary-800: #274379;
+  --primary-900: #18325a;
+  
+  /* Semantic colors */
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --error: #ef4444;
+  --error-light: #fee2e2;
+  --info: #3b82f6;
+  --info-light: #dbeafe;
+  
+  /* Neutral colors */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+}
+
+/* ==========================================
+   4. SHADOWS SYSTEM - نظام الظلال
+   ========================================== */
+
+:root {
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  /* Colored shadows for primary color */
+  --shadow-primary: 0 10px 25px -5px rgba(24, 50, 90, 0.3);
+  --shadow-primary-lg: 0 20px 40px -10px rgba(24, 50, 90, 0.4);
+}
+
+/* ==========================================
+   5. BORDER RADIUS - نصف قطر الحدود
+   ========================================== */
+
+:root {
+  --radius-sm: 0.375rem;   /* 6px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
+  
+  /* Component specific */
+  --card-radius: var(--radius-xl);
+  --button-radius: var(--radius-lg);
+  --input-radius: var(--radius-lg);
+}
+
+/* ==========================================
+   6. TRANSITIONS - التحولات
+   ========================================== */
+
+:root {
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================
+   7. UTILITY CLASSES - فئات الأدوات
+   ========================================== */
+
+@layer utilities {
+  /* Spacing utilities */
+  .page-container {
+    padding: var(--page-padding);
+  }
+  
+  .section-spacing {
+    margin-bottom: var(--section-spacing);
+  }
+  
+  .card-padding {
+    padding: var(--card-padding);
+  }
+  
+  .element-gap {
+    gap: var(--element-gap);
+  }
+  
+  .compact-gap {
+    gap: var(--compact-gap);
+  }
+  
+  /* Card styles */
+  .card-modern {
+    background: white;
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+  }
+  
+  .card-modern:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+  
+  /* Button styles */
+  .btn-primary {
+    background: var(--primary-900);
+    color: white;
+    padding: var(--spacing-3) var(--spacing-6);
+    border-radius: var(--button-radius);
+    font-weight: var(--font-medium);
+    transition: all var(--transition-base);
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary-800);
+    box-shadow: var(--shadow-primary);
+    transform: translateY(-1px);
+  }
+  
+  /* Input styles */
+  .input-modern {
+    height: 48px;
+    padding: var(--spacing-3) var(--spacing-4);
+    border-radius: var(--input-radius);
+    border: 1px solid var(--gray-300);
+    transition: all var(--transition-base);
+  }
+  
+  .input-modern:focus {
+    border-color: var(--primary-900);
+    box-shadow: 0 0 0 3px rgba(24, 50, 90, 0.1);
+    outline: none;
+  }
+  
+  /* Typography utilities */
+  .heading-xl {
+    font-size: var(--text-5xl);
+    font-weight: var(--font-bold);
+    line-height: var(--leading-tight);
+  }
+  
+  .heading-lg {
+    font-size: var(--text-4xl);
+    font-weight: var(--font-bold);
+    line-height: var(--leading-tight);
+  }
+  
+  .heading-md {
+    font-size: var(--text-3xl);
+    font-weight: var(--font-bold);
+    line-height: var(--leading-normal);
+  }
+  
+  .heading-sm {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-semibold);
+    line-height: var(--leading-normal);
+  }
+  
+  .body-lg {
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+  }
+  
+  .body-base {
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+  }
+  
+  /* Layout utilities */
+  .container-narrow {
+    max-width: 768px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .container-medium {
+    max-width: 1024px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .container-wide {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Grid utilities */
+  .grid-auto-fit {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--element-gap);
+  }
+  
+  .grid-auto-fill {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--element-gap);
+  }
+  
+  /* Glassmorphism effect */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .glass-effect-dark {
+    background: rgba(24, 50, 90, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Gradient backgrounds */
+  .gradient-primary {
+    background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-700) 100%);
+  }
+  
+  .gradient-soft {
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+  }
+  
+  /* Animation utilities */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-slide-in-right {
+    animation: slideInRight 0.4s ease-out forwards;
+  }
+  
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  /* Focus states */
+  .focus-ring {
+    transition: box-shadow var(--transition-base);
+  }
+  
+  .focus-ring:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(24, 50, 90, 0.15);
+  }
+  
+  /* Status indicators */
+  .status-active {
+    background: var(--success-light);
+    color: var(--success);
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+  }
+  
+  .status-inactive {
+    background: var(--gray-100);
+    color: var(--gray-600);
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+  }
+  
+  .status-pending {
+    background: var(--warning-light);
+    color: var(--warning);
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+  }
+  
+  .status-error {
+    background: var(--error-light);
+    color: var(--error);
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+  }
+}
+
+/* ==========================================
+   8. COMPONENT SPECIFIC STYLES
+   ========================================== */
+
+/* Stat Cards */
+.stat-card {
+  padding: var(--spacing-5);
+  background: white;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--gray-100);
+  transition: all var(--transition-base);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-200);
+  transform: translateY(-2px);
+}
+
+/* Filter Section */
+.filter-section {
+  padding: var(--spacing-5);
+  background: linear-gradient(to right, white 0%, var(--gray-50) 100%);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--gray-100);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Chart Container */
+.chart-container {
+  padding: var(--spacing-5);
+  background: white;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-md);
+  min-height: 350px;
+}
+
+/* Table styles */
+.table-modern {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.table-modern th {
+  background: var(--gray-50);
+  padding: var(--spacing-4);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  color: var(--gray-700);
+}
+
+.table-modern td {
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--gray-200);
+}
+
+.table-modern tr:hover {
+  background: var(--gray-50);
+}
+
+/* ==========================================
+   9. RESPONSIVE BREAKPOINTS
+   ========================================== */
+
+/* Mobile first approach */
+@media (min-width: 640px) {
+  :root {
+    --page-padding: var(--spacing-8);
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --section-spacing: var(--spacing-12);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --page-padding: var(--spacing-10);
+  }
+}
+
+/* ==========================================
+   10. PERFORMANCE OPTIMIZATIONS
+   ========================================== */
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* GPU acceleration for smoother animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}

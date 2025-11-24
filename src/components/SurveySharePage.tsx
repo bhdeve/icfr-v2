@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -31,8 +31,9 @@ import {
   Send
 } from 'lucide-react';
 import { Survey } from '../App';
+import { EnhancedPageLayout } from './EnhancedPageLayout';
 import { toast } from 'sonner@2.0.3';
-import { AdminPageLayout } from './shared/AdminPageLayout';
+import { surveysService } from '../api/services';
 
 // Simple QR Code component
 const SimpleQRCode = ({ value, size = 200, className = '' }: { value: string; size?: number; className?: string }) => {
@@ -62,27 +63,56 @@ interface Beneficiary {
   status: 'active' | 'invited' | 'completed';
 }
 
-// Mock beneficiaries data
-const mockBeneficiaries: Beneficiary[] = [
-  { id: '1', name: 'أحمد محمد السالم', email: 'ahmed@example.com', phone: '+966501234567', group: 'الشباب', status: 'active' },
-  { id: '2', name: 'فاطمة عبد الله', email: 'fatima@example.com', phone: '+966507654321', group: 'النساء', status: 'invited' },
-  { id: '3', name: 'محمد عبد الرحمن', email: 'mohammed@example.com', phone: '+966509876543', group: 'كبار السن', status: 'completed' },
-  { id: '4', name: 'خديجة أحمد', email: 'khadija@example.com', phone: '+966502468135', group: 'النساء', status: 'active' },
-  { id: '5', name: 'عبد الله محمد', email: 'abdullah@example.com', phone: '+966508642097', group: 'الشباب', status: 'invited' },
-  { id: '6', name: 'مريم سالم', email: 'mariam@example.com', phone: '+966501357924', group: 'النساء', status: 'active' },
-  { id: '7', name: 'سالم أحمد الحربي', email: 'salem@example.com', phone: '+966503456789', group: 'الشباب', status: 'active' },
-  { id: '8', name: 'نورا محمد العتيبي', email: 'nora@example.com', phone: '+966504567890', group: 'النساء', status: 'invited' },
-  { id: '9', name: 'عبد الرحمن سعد', email: 'abdulrahman@example.com', phone: '+966505678901', group: 'كبار السن', status: 'completed' },
-  { id: '10', name: 'هند عبد الله', email: 'hind@example.com', phone: '+966506789012', group: 'النساء', status: 'active' }
-];
-
 export function SurveySharePage({ survey, onBackToSurveys }: SurveySharePageProps) {
   const [selectedShareType, setSelectedShareType] = useState<string>('bulk-share');
   const [selectedBeneficiaries, setSelectedBeneficiaries] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
   const [isSharing, setIsSharing] = useState(false);
-  const [beneficiaries] = useState<Beneficiary[]>(mockBeneficiaries);
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
+  const [loadingBeneficiaries, setLoadingBeneficiaries] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadResponses = async () => {
+      setLoadingBeneficiaries(true);
+      try {
+        const response = await surveysService.getResponses(survey.id, { page: 1, limit: 200 });
+        if (!isActive) return;
+
+        if (response.success) {
+          const items = response.data.items || [];
+          const mapped = items.map((resp: any, index: number) => ({
+            id: resp.beneficiaryId || resp.id || `response-${index}`,
+            name: resp.beneficiaryName || 'O�USO� U.O-O_O_',
+            email: resp.beneficiaryEmail || '',
+            phone: resp.beneficiaryPhone || '',
+            group: resp.status === 'partial' ? 'O�O�O�USO�' : undefined,
+            status: resp.status === 'completed' ? 'completed' : 'active'
+          }));
+          setBeneficiaries(mapped);
+        } else {
+          toast.error('O-O_O� OrO�O� O�O�U+OO� O�U,O" O�O�O3OU, OU,OO3O�O"USOU+');
+        }
+      } catch (error) {
+        console.error('Failed to load survey responses:', error);
+        if (isActive) {
+          toast.error('O-O_O� OrO�O� O�O�U+OO� O�U,O" O�O�O3OU, OU,OO3O�O"USOU+');
+        }
+      } finally {
+        if (isActive) {
+          setLoadingBeneficiaries(false);
+        }
+      }
+    };
+
+    loadResponses();
+
+    return () => {
+      isActive = false;
+    };
+  }, [survey.id]);
 
   const surveyUrl = `https://atharonaa.com/survey/${survey.id}`;
 
@@ -335,7 +365,7 @@ export function SurveySharePage({ survey, onBackToSurveys }: SurveySharePageProp
         <div className="flex items-center gap-3">
           <Users className="h-6 w-6 text-white" />
           <div>
-            <div className="text-white">{mockBeneficiaries.length} مستفيد</div>
+            <div className="text-white">{beneficiaries.length} مستفيد</div>
             <div className="text-blue-200">مسجل في النظام</div>
           </div>
         </div>
@@ -593,6 +623,7 @@ export function SurveySharePage({ survey, onBackToSurveys }: SurveySharePageProp
                   <div className="flex items-center gap-3 p-4 bg-white rounded-lg border mb-4">
                     <Checkbox
                       checked={selectAll}
+                      disabled={loadingBeneficiaries || filteredBeneficiaries.length === 0}
                       onCheckedChange={handleSelectAll}
                     />
                     <Label>تحديد الكل ({filteredBeneficiaries.length} مستفيد)</Label>
@@ -600,7 +631,13 @@ export function SurveySharePage({ survey, onBackToSurveys }: SurveySharePageProp
 
                   {/* Beneficiaries List */}
                   <div className="max-h-64 overflow-y-auto space-y-2 mb-6">
-                    {filteredBeneficiaries.map((beneficiary) => (
+                    {loadingBeneficiaries && (
+                      <div className="text-sm text-gray-600 p-3">O?OO?US O?U,O" U+O?OO?O? O?O?O3OU, OU,OO3O?O"USOU+...</div>
+                    )}
+                    {!loadingBeneficiaries && filteredBeneficiaries.length === 0 && (
+                      <div className="text-sm text-gray-600 p-3">O?USO? U.O-O_O_ O?O?O3OU, OU,OO3O?O"USOU+.</div>
+                    )}
+                    {!loadingBeneficiaries && filteredBeneficiaries.map((beneficiary) => (
                       <div key={beneficiary.id} className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:bg-gray-50">
                         <Checkbox
                           checked={selectedBeneficiaries.includes(beneficiary.id)}
@@ -610,11 +647,11 @@ export function SurveySharePage({ survey, onBackToSurveys }: SurveySharePageProp
                           <div className="flex items-center justify-between">
                             <span>{beneficiary.name}</span>
                             <Badge variant={beneficiary.status === 'active' ? 'default' : beneficiary.status === 'invited' ? 'secondary' : 'outline'}>
-                              {beneficiary.status === 'active' ? 'نشط' : beneficiary.status === 'invited' ? 'مدعو' : 'مكتمل'}
+                              {beneficiary.status === "active" ? "U+O'O?" : beneficiary.status === "invited" ? "U.O_O1U^" : "U.U?O?U.U,"}
                             </Badge>
                           </div>
                           <div className="text-muted-foreground">
-                            {beneficiary.email} | {beneficiary.phone} | {beneficiary.group}
+                            {beneficiary.email || 'O?USO? U.O-O_O_'} | {beneficiary.phone || 'O?USO? U.O-O_O_'} | {beneficiary.group || 'O?USO? U.O-O_O_'}
                           </div>
                         </div>
                       </div>

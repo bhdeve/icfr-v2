@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -19,7 +19,7 @@ import {
   Target,
   TrendingUp
 } from 'lucide-react';
-import {
+import { 
   LineChart as RechartsLineChart,
   Line,
   XAxis,
@@ -37,6 +37,7 @@ import { ImpactAnalysis } from './surveys/ImpactAnalysis';
 import { InsightsPanel } from './surveys/InsightsPanel';
 import { AdminPageLayout } from './shared/AdminPageLayout';
 import { toast } from 'sonner@2.0.3';
+import { surveysService } from '../api/services';
 
 interface SurveyResultsPageProps {
   surveyId: string;
@@ -50,8 +51,60 @@ export function SurveyResultsPage({ surveyId, onBack, onBackToSurvey }: SurveyRe
   const [activeTab, setActiveTab] = useState('overview');
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [results, setResults] = useState<any>(mockSurveyResults);
+  const [loading, setLoading] = useState(false);
 
-  const results = mockSurveyResults; // In real app, fetch by surveyId
+  useEffect(() => {
+    const load = async () => {
+      if (!surveyId) return;
+      setLoading(true);
+      try {
+        const [responsesRes, analyticsRes] = await Promise.all([
+          surveysService.getResponses(surveyId, { page: 1, limit: 100 }),
+          surveysService.getAnalytics(surveyId)
+        ]);
+
+        const responsesTotal = responsesRes.success
+          ? responsesRes.data?.pagination?.total ?? mockSurveyResults.totalResponses
+          : mockSurveyResults.totalResponses;
+        const demographicsRaw = analyticsRes.success
+          ? analyticsRes.data?.demographics || (analyticsRes.data as any)?.targetAudience
+          : null;
+        const demographics = demographicsRaw || mockSurveyResults.demographics;
+        const trendsData = analyticsRes.success && analyticsRes.data?.trends?.daily
+          ? analyticsRes.data.trends.daily.map((item: any) => ({
+              date: item.date,
+              responses: item.count,
+              satisfaction: mockSurveyResults.trendsData[0]?.satisfaction ?? 0
+            }))
+          : mockSurveyResults.trendsData;
+        const insightsData = (analyticsRes.success && (analyticsRes.data as any)?.insights) || mockSurveyResults.insights;
+        const lastUpdated = analyticsRes.success && analyticsRes.data?.lastResponseAt
+          ? new Date(analyticsRes.data.lastResponseAt)
+          : mockSurveyResults.lastUpdated;
+
+        if (responsesRes.success || analyticsRes.success) {
+          setResults({
+            ...mockSurveyResults,
+            totalResponses: analyticsRes.success ? (analyticsRes.data?.totalResponses ?? responsesTotal) : responsesTotal,
+            completionRate: analyticsRes.data?.completionRate ?? mockSurveyResults.completionRate,
+            demographics,
+            trendsData,
+            insights: insightsData,
+            lastUpdated,
+          });
+        } else {
+          toast.error('Failed to load survey results');
+        }
+      } catch (error) {
+        console.error('Failed to load survey results:', error);
+        toast.error('حدث خطأ أثناء جلب نتائج الاستبيان');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [surveyId]);
 
   // Apply filters to data
   const applyFilters = (data: any[]) => {
@@ -212,6 +265,11 @@ export function SurveyResultsPage({ surveyId, onBack, onBackToSurvey }: SurveyRe
       icon={BarChart3}
     >
       <div className="space-y-4">
+        {loading && (
+          <div className="p-4 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+            O�OO�US O�U,O" U+O�OO�O� OU,OO3O�O"USOU+...
+          </div>
+        )}
         {/* Back Button and Actions */}
         <div className="flex items-center justify-between">
           <Button

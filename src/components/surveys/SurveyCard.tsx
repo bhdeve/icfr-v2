@@ -70,7 +70,7 @@ export function SurveyCard({
   };
 
   const completionRate = survey.responses > 0 
-    ? Math.round((survey.responses / 100) * 100) 
+    ? Math.round((survey.responses / (survey.beneficiaries || 100)) * 100) 
     : 0;
 
   const handleDelete = () => {
@@ -103,7 +103,9 @@ export function SurveyCard({
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-gray-500" />
-                <span>{survey.createdAt.toLocaleDateString('ar-SA')}</span>
+                <span>
+                  {survey.createdAt ? new Date(survey.createdAt).toLocaleDateString('ar-SA') : '—'}
+                </span>
               </div>
             </div>
 

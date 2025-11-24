@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Separator } from './ui/separator';
 import { 
   ArrowRight,
   FileText,
@@ -11,9 +10,7 @@ import {
   Target,
   BarChart3,
   Edit,
-  Share2,
   Eye,
-  Clock,
   CheckCircle,
   AlertCircle,
   Briefcase,
@@ -23,6 +20,9 @@ import {
   Settings
 } from 'lucide-react';
 import { AdminPageLayout } from './shared/AdminPageLayout';
+import { toast } from 'sonner@2.0.3';
+import { surveysService } from '../api/services';
+import type { SurveyDetail } from '../api/services/surveys.service';
 
 interface SurveyViewPageProps {
   surveyId: string;
@@ -30,87 +30,6 @@ interface SurveyViewPageProps {
   onEdit: (surveyId: string) => void;
   onViewResults: (surveyId: string) => void;
 }
-
-// Mock survey data
-const mockSurvey = {
-  id: 'survey-123',
-  title: 'استبيان قياس الأثر الاجتماعي للبرامج التعليمية',
-  organization: 'مؤسسة التنمية الاجتماعية',
-  organizationEmail: 'info@social-dev.org',
-  description: 'استبيان شامل لقياس أثر البرامج التعليمية على المستفيدين في مختلف المناطق والفئات العمرية.',
-  status: 'active' as const,
-  createdAt: new Date('2024-01-15'),
-  responses: 156,
-  totalBeneficiaries: 250,
-  selectedSectors: ['education_culture', 'income_work'],
-  selectedFilters: ['age', 'region', 'education', 'gender'],
-  preQuestions: [
-    {
-      id: '1',
-      text: 'ما هو مستواك التعليمي الحالي؟',
-      type: 'single_choice',
-      required: true,
-      options: ['ابتدائي', 'متوسط', 'ثانوي', 'جامعي', 'دراسات عليا'],
-      sector: 'education_culture'
-    },
-    {
-      id: '2', 
-      text: 'هل تعمل حالياً؟',
-      type: 'single_choice',
-      required: true,
-      options: ['نعم', 'لا', 'أبحث عن عمل'],
-      sector: 'income_work'
-    },
-    {
-      id: '3',
-      text: 'كيف تقيم مهاراتك الحالية؟',
-      type: 'rating',
-      required: true,
-      sector: 'education_culture'
-    }
-  ],
-  postQuestions: [
-    {
-      id: '4',
-      text: 'هل تحسن مستواك التعليمي بعد البرنامج؟',
-      type: 'single_choice',
-      required: true,
-      options: ['تحسن كثيراً', 'تحسن قليلاً', 'لم يتحسن', 'تراجع'],
-      sector: 'education_culture'
-    },
-    {
-      id: '5',
-      text: 'هل حصلت على عمل بعد البرنامج؟',
-      type: 'single_choice',
-      required: true,
-      options: ['نعم', 'لا، لكن حصلت على عروض', 'لا، ما زلت أبحث'],
-      sector: 'income_work'
-    },
-    {
-      id: '6',
-      text: 'كيف تقيم مهاراتك بعد البرنامج؟',
-      type: 'rating',
-      required: true,
-      sector: 'education_culture'
-    },
-    {
-      id: '7',
-      text: 'ما التحسينات التي لاحظتها؟',
-      type: 'text',
-      required: false,
-      sector: 'education_culture'
-    }
-  ],
-  beneficiaries: 250,
-  settings: {
-    startDate: '2024-01-15',
-    endDate: '2024-03-15',
-    allowPartialResponses: true,
-    requireBeneficiaryInfo: true,
-    autoReminders: true,
-    reminderFrequency: '7'
-  }
-};
 
 const impactSectors = [
   {
@@ -152,8 +71,43 @@ const filters = [
 
 export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: SurveyViewPageProps) {
   const [currentView, setCurrentView] = useState<'overview' | 'questions' | 'settings'>('overview');
+  const [survey, setSurvey] = useState<SurveyDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const survey = mockSurvey; // In real app, fetch by surveyId
+  useEffect(() => {
+    let isActive = true;
+    const loadSurvey = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await surveysService.getById(surveyId);
+        if (!isActive) return;
+        if (response.success) {
+          setSurvey(response.data);
+        } else {
+          setError(response.error?.message || 'O-O_O� OrO�O� O�O�U+OO� O�U,O" U+O�OO�O� OU,OO3O�O\"USOU+');
+          toast.error('O-O_O� OrO�O� O�O�U+OO� O�U,O" U+O�OO�O� OU,OO3O�O\"USOU+');
+        }
+      } catch (err) {
+        console.error('Failed to load survey details:', err);
+        if (isActive) {
+          setError('O-O_O� OrO�O� O�O�U+OO� O�U,O" U+O�OO�O� OU,OO3O�O\"USOU+');
+          toast.error('O-O_O� OrO�O� O�O�U+OO� O�U,O" U+O�OO�O� OU,OO3O�O\"USOU+');
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadSurvey();
+
+    return () => {
+      isActive = false;
+    };
+  }, [surveyId]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -168,7 +122,35 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
     }
   };
 
-  const completionRate = Math.round((survey.responses / survey.totalBeneficiaries) * 100);
+  const responses = survey?.responsesCount ?? (survey as any)?.responses ?? 0;
+  const totalBeneficiaries = (survey as any)?.totalBeneficiaries ?? (survey as any)?.beneficiaries ?? 0;
+  const completionRate = Math.round(
+    survey?.completionRate ?? (totalBeneficiaries ? (responses / totalBeneficiaries) * 100 : 0)
+  );
+  const questionsCount =
+    survey?.sections?.reduce((sum, section) => sum + (section.questions?.length || 0), 0) ??
+    ((survey as any)?.preQuestions?.length || 0) +
+      ((survey as any)?.postQuestions?.length || 0);
+  const selectedSectors = (survey as any)?.selectedSectors ?? (survey?.category ? [survey.category] : []);
+  const selectedFilters = (survey as any)?.selectedFilters ?? [];
+  const surveyTitle = survey?.title ?? 'O?USO? U.O-O_O_';
+  const organizationName = (survey as any)?.organization ?? (survey as any)?.organizationName ?? 'O?USO? U.O-O_O_';
+  const createdAt = survey?.createdAt ? new Date(survey.createdAt).toLocaleDateString('ar-SA') : '';
+  const status = survey?.status ?? 'draft';
+  const description = survey?.description ?? '';
+  const surveyIdentifier = survey?.id ?? surveyId;
+  const surveySections = survey?.sections ?? [];
+  const legacyPreQuestions = (survey as any)?.preQuestions ?? [];
+  const legacyPostQuestions = (survey as any)?.postQuestions ?? [];
+  const startDate = survey?.createdAt ? new Date(survey.createdAt) : null;
+  const endDate = (survey as any)?.updatedAt ? new Date((survey as any).updatedAt) : (survey as any)?.closedAt ? new Date((survey as any).closedAt) : null;
+  const settings = (survey as any)?.settings ?? {};
+  const allowPartialResponses = settings.allowPartialResponses ?? false;
+  const requireBeneficiaryInfo = settings.requireBeneficiaryInfo ?? false;
+  const autoReminders = settings.autoReminders ?? false;
+  const reminderFrequency = settings.reminderFrequency ?? '';
+  const organizationEmail = (survey as any)?.organizationEmail ?? '';
+  const beneficiariesCount = totalBeneficiaries;
 
   // Header stats for the page layout
   const headerStats = (
@@ -177,7 +159,7 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
         <div className="flex items-center gap-3">
           <Users className="h-6 w-6 text-white" />
           <div>
-            <div className="text-2xl font-bold text-white arabic-numbers">{survey.responses}</div>
+            <div className="text-2xl font-bold text-white arabic-numbers">{responses}</div>
             <div className="text-blue-200">إجمالي الردود</div>
           </div>
         </div>
@@ -195,7 +177,7 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
         <div className="flex items-center gap-3">
           <FileText className="h-6 w-6 text-white" />
           <div>
-            <div className="text-2xl font-bold text-white arabic-numbers">{survey.preQuestions.length + survey.postQuestions.length}</div>
+            <div className="text-2xl font-bold text-white arabic-numbers">{questionsCount}</div>
             <div className="text-blue-200">إجمالي الأسئلة</div>
           </div>
         </div>
@@ -204,7 +186,7 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
         <div className="flex items-center gap-3">
           <Target className="h-6 w-6 text-white" />
           <div>
-            <div className="text-2xl font-bold text-white arabic-numbers">{survey.selectedSectors.length}</div>
+            <div className="text-2xl font-bold text-white arabic-numbers">{selectedSectors.length}</div>
             <div className="text-blue-200">مجالات الأثر</div>
           </div>
         </div>
@@ -219,6 +201,16 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
       icon={Eye}
     >
       <div className="space-y-4">
+        {loading && (
+          <div className="p-4 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+            O�OO�US O�U,O" U+O�OO�O� OU,OO3O�O"USOU+...
+          </div>
+        )}
+        {error && (
+          <div className="p-4 rounded-lg bg-red-50 text-red-700 border border-red-200">
+            {error}
+          </div>
+        )}
         {/* Back Button and Actions */}
         <div className="flex items-center justify-between">
           <Button
@@ -233,14 +225,16 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
           <div className="flex gap-3">
             <Button
               variant="outline"
-              onClick={() => onViewResults(survey.id)}
+              disabled={!surveyIdentifier || loading}
+              onClick={() => onViewResults(surveyIdentifier)}
               className="gap-2"
             >
               <BarChart3 className="h-4 w-4" />
               عرض النتائج
             </Button>
             <Button
-              onClick={() => onEdit(survey.id)}
+              disabled={!surveyIdentifier || loading}
+              onClick={() => onEdit(surveyIdentifier)}
               className="gap-2 bg-[#183259] hover:bg-[#2a4a7a]"
             >
               <Edit className="h-4 w-4" />
@@ -254,19 +248,19 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
           <CardHeader className="border-b border-[#183259]/10 pb-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <CardTitle className="text-2xl text-[#183259] mb-4">{survey.title}</CardTitle>
+                <CardTitle className="text-2xl text-[#183259] mb-4">{surveyTitle}</CardTitle>
                 <div className="flex items-center gap-6 text-base text-gray-600 mb-6">
                   <span className="flex items-center gap-2">
                     <Building className="h-5 w-5" />
-                    {survey.organization}
+                    {organizationName}
                   </span>
                   <span className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
-                    {survey.createdAt.toLocaleDateString('ar-SA')}
+                    {createdAt || 'O?USO? U.O-O_O_'}
                   </span>
-                  {getStatusBadge(survey.status)}
+                  {getStatusBadge(status)}
                 </div>
-                <p className="text-gray-700 text-lg leading-relaxed">{survey.description}</p>
+                <p className="text-gray-700 text-lg leading-relaxed">{description}</p>
               </div>
             </div>
           </CardHeader>
@@ -309,7 +303,7 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
               </CardHeader>
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {survey.selectedSectors.map(sectorId => {
+                  {selectedSectors.map(sectorId => {
                     const sector = impactSectors.find(s => s.id === sectorId);
                     if (!sector) return null;
                     
@@ -333,7 +327,7 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
               </CardHeader>
               <CardContent className="p-8">
                 <div className="flex flex-wrap gap-4">
-                  {survey.selectedFilters.map(filterId => {
+                  {selectedFilters.map(filterId => {
                     const filter = filters.find(f => f.id === filterId);
                     return filter ? (
                       <Badge key={filterId} variant="outline" className="text-base px-4 py-2 border-[#183259]/30 text-[#183259]">
@@ -356,14 +350,14 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
                     <div className="w-4 h-4 bg-green-500 rounded-full"></div>
                     <div>
                       <p className="font-semibold text-lg">تاريخ البداية</p>
-                      <p className="text-base text-gray-600 arabic-numbers">{new Date(survey.settings.startDate).toLocaleDateString('ar-SA')}</p>
+                      <p className="text-base text-gray-600 arabic-numbers">{startDate ? startDate.toLocaleDateString('ar-SA') : 'O?USO? U.O-O_O_'}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="w-4 h-4 bg-red-500 rounded-full"></div>
                     <div>
                       <p className="font-semibold text-lg">تاريخ الانتهاء</p>
-                      <p className="text-base text-gray-600 arabic-numbers">{new Date(survey.settings.endDate).toLocaleDateString('ar-SA')}</p>
+                      <p className="text-base text-gray-600 arabic-numbers">{endDate ? endDate.toLocaleDateString('ar-SA') : 'O?USO? U.O-O_O_'}</p>
                     </div>
                   </div>
                 </div>
@@ -374,91 +368,84 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
 
         {currentView === 'questions' && (
           <div className="space-y-4">
-            {/* Pre Questions */}
             <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
               <CardHeader className="border-b border-[#183259]/10 pb-6">
-                <CardTitle className="text-2xl text-blue-600">الأسئلة القبلية ({survey.preQuestions.length})</CardTitle>
+                <CardTitle className="text-2xl text-[#183259]">O?O?O?O?U,O?</CardTitle>
               </CardHeader>
-              <CardContent className="p-8">
-                <div className="space-y-6">
-                  {survey.preQuestions.map((question, index) => (
-                    <div key={question.id} className="border-2 border-gray-200 rounded-2xl p-6 hover:border-blue-300 transition-colors">
-                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="font-semibold text-lg">{index + 1}. {question.text}</h4>
-                        <div className="flex gap-3">
-                          <Badge variant={question.required ? "default" : "outline"} className="text-sm px-3 py-1">
-                            {question.required ? 'مطلوب' : 'اختياري'}
-                          </Badge>
-                          <Badge variant="secondary" className="text-sm px-3 py-1">
-                            {question.type === 'text' ? 'نص' : 
-                             question.type === 'rating' ? 'تقييم' :
-                             question.type === 'single_choice' ? 'اختيار واحد' : 'اختيار متعدد'}
-                          </Badge>
-                        </div>
-                      </div>
-                      
-                      {question.options && (
-                        <div className="mt-4">
-                          <p className="text-base text-gray-600 mb-3">الخيارات:</p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {question.options.map((option, optIndex) => (
-                              <div key={optIndex} className="text-base bg-gray-50 p-3 rounded-xl border">
-                                {option}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+              <CardContent className="p-8 space-y-6">
+                {loading && (
+                  <div className="flex items-center gap-3 text-[#183259]">
+                    <div className="w-5 h-5 border-2 border-[#183259] border-t-transparent rounded-full animate-spin" />
+                    <span>O?O?O?US O?U,O\" U+O?O?O?O? O?U,O?O3O?U,O?...</span>
+                  </div>
+                )}
 
-            {/* Post Questions */}
-            <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
-              <CardHeader className="border-b border-[#183259]/10 pb-6">
-                <CardTitle className="text-2xl text-green-600">الأسئلة البعدية ({survey.postQuestions.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="p-8">
-                <div className="space-y-6">
-                  {survey.postQuestions.map((question, index) => (
-                    <div key={question.id} className="border-2 border-gray-200 rounded-2xl p-6 hover:border-green-300 transition-colors">
-                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="font-semibold text-lg">{index + 1}. {question.text}</h4>
-                        <div className="flex gap-3">
-                          <Badge variant={question.required ? "default" : "outline"} className="text-sm px-3 py-1">
-                            {question.required ? 'مطلوب' : 'اختياري'}
-                          </Badge>
-                          <Badge variant="secondary" className="text-sm px-3 py-1">
-                            {question.type === 'text' ? 'نص' : 
-                             question.type === 'rating' ? 'تقييم' :
-                             question.type === 'single_choice' ? 'اختيار واحد' : 'اختيار متعدد'}
-                          </Badge>
-                        </div>
-                      </div>
-                      
-                      {question.options && (
-                        <div className="mt-4">
-                          <p className="text-base text-gray-600 mb-3">الخيارات:</p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {question.options.map((option, optIndex) => (
-                              <div key={optIndex} className="text-base bg-gray-50 p-3 rounded-xl border">
-                                {option}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                {!loading && surveySections.length === 0 && !(legacyPreQuestions.length || legacyPostQuestions.length) && (
+                  <p className="text-gray-600">O?USO? U.O-O_O_ O?O?O?O? O?U,O?O3O?U,O?.</p>
+                )}
+
+                {!loading && surveySections.length > 0 && surveySections.map((section, sectionIndex) => (
+                  <div key={section.id || sectionIndex} className="border-2 border-gray-200 rounded-2xl p-6 hover:border-[#183259]/30 transition-colors space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-lg">{section.title || `O?O1O_O?O_O?O? ${sectionIndex + 1}`}</h4>
+                      <Badge variant="outline" className="text-sm px-3 py-1">
+                        {section.questions?.length ?? 0} O?U,O?O3O?U,O?
+                      </Badge>
                     </div>
-                  ))}
-                </div>
+                    <div className="space-y-4">
+                      {(section.questions || []).map((question, index) => (
+                        <div key={question.id || index} className="p-4 rounded-xl bg-gray-50 border">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="font-semibold text-base">{index + 1}. {question.title || question.text}</span>
+                            <Badge variant={question.required ? 'default' : 'outline'} className="text-xs px-2 py-1">
+                              {question.required ? 'U.O?U,U^O"' : 'O?OrO?USO?O?US'}
+                            </Badge>
+                          </div>
+                          {question.options && question.options.length > 0 && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">
+                              {question.options.map((option: any, optIndex: number) => (
+                                <div key={option.id || optIndex} className="text-sm bg-white p-2 rounded-lg border">
+                                  {option.label || option}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {!loading && surveySections.length === 0 && (legacyPreQuestions.length > 0 || legacyPostQuestions.length > 0) && (
+                  <div className="space-y-4">
+                    {[...legacyPreQuestions, ...legacyPostQuestions].map((question: any, index: number) => (
+                      <div key={question.id || index} className="border-2 border-gray-200 rounded-2xl p-6 hover:border-[#183259]/30 transition-colors">
+                        <div className="flex justify-between items-start mb-4">
+                          <h4 className="font-semibold text-lg">{index + 1}. {question.text}</h4>
+                          <Badge variant={question.required ? 'default' : 'outline'} className="text-sm px-3 py-1">
+                            {question.required ? 'U.O?U,U^O"' : 'O?OrO?USO?O?US'}
+                          </Badge>
+                        </div>
+                        {question.options && (
+                          <div className="mt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {question.options.map((option: any, optIndex: number) => (
+                                <div key={optIndex} className="text-base bg-gray-50 p-3 rounded-xl border">
+                                  {option}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         )}
-
-        {currentView === 'settings' && (
+{currentView === 'settings' && (
           <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
             <CardHeader className="border-b border-[#183259]/10 pb-6">
               <CardTitle className="flex items-center gap-4 text-2xl text-[#183259]">
@@ -475,11 +462,11 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
                   <div className="space-y-4 text-base">
                     <div className="flex justify-between p-4 bg-gray-50 rounded-xl">
                       <span className="text-gray-600">تاريخ البداية:</span>
-                      <span className="font-semibold arabic-numbers">{new Date(survey.settings.startDate).toLocaleDateString('ar-SA')}</span>
+                      <span className="font-semibold arabic-numbers">{startDate ? startDate.toLocaleDateString('ar-SA') : 'O?USO? U.O-O_O_'}</span>
                     </div>
                     <div className="flex justify-between p-4 bg-gray-50 rounded-xl">
                       <span className="text-gray-600">تاريخ الانتهاء:</span>
-                      <span className="font-semibold arabic-numbers">{new Date(survey.settings.endDate).toLocaleDateString('ar-SA')}</span>
+                      <span className="font-semibold arabic-numbers">{endDate ? endDate.toLocaleDateString('ar-SA') : 'O?USO? U.O-O_O_'}</span>
                     </div>
                   </div>
                 </div>
@@ -489,11 +476,11 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
                   <div className="space-y-4 text-base">
                     <div className="flex justify-between p-4 bg-gray-50 rounded-xl">
                       <span className="text-gray-600">الردود الجزئية:</span>
-                      <span className="font-semibold">{survey.settings.allowPartialResponses ? 'مسموحة' : 'غير مسموحة'}</span>
+                      <span className="font-semibold">{allowPartialResponses ? 'مسموحة' : 'غير مسموحة'}</span>
                     </div>
                     <div className="flex justify-between p-4 bg-gray-50 rounded-xl">
                       <span className="text-gray-600">معلومات المستفيد:</span>
-                      <span className="font-semibold">{survey.settings.requireBeneficiaryInfo ? 'مطلوبة' : 'غير مطلوبة'}</span>
+                      <span className="font-semibold">{requireBeneficiaryInfo ? 'مطلوبة' : 'غير مطلوبة'}</span>
                     </div>
                   </div>
                 </div>
@@ -503,12 +490,12 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
                   <div className="space-y-4 text-base">
                     <div className="flex justify-between p-4 bg-gray-50 rounded-xl">
                       <span className="text-gray-600">التذكيرات التلقائية:</span>
-                      <span className="font-semibold">{survey.settings.autoReminders ? 'مفعلة' : 'معطلة'}</span>
+                      <span className="font-semibold">{autoReminders ? 'مفعلة' : 'معطلة'}</span>
                     </div>
-                    {survey.settings.autoReminders && (
+                    {autoReminders && (
                       <div className="flex justify-between p-4 bg-gray-50 rounded-xl">
                         <span className="text-gray-600">تكرار التذكيرات:</span>
-                        <span className="font-semibold arabic-numbers">كل {survey.settings.reminderFrequency} أيام</span>
+                        <span className="font-semibold arabic-numbers">كل {reminderFrequency} أيام</span>
                       </div>
                     )}
                   </div>
@@ -519,11 +506,11 @@ export function SurveyViewPage({ surveyId, onBack, onEdit, onViewResults }: Surv
                   <div className="space-y-4 text-base">
                     <div className="flex justify-between p-4 bg-gray-50 rounded-xl">
                       <span className="text-gray-600">البريد الإلكتروني:</span>
-                      <span className="font-semibold">{survey.organizationEmail || 'غير محدد'}</span>
+                      <span className="font-semibold">{organizationEmail || 'غير محدد'}</span>
                     </div>
                     <div className="flex justify-between p-4 bg-gray-50 rounded-xl">
                       <span className="text-gray-600">إجمالي المستفيدين:</span>
-                      <span className="font-semibold arabic-numbers">{survey.beneficiaries}</span>
+                      <span className="font-semibold arabic-numbers">{beneficiariesCount}</span>
                     </div>
                   </div>
                 </div>
